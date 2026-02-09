@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OnClickInvest.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7dfb8b00c9a9314f5ef8d6f8b33f1606ab7a02a7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
 [assembly: System.Reflection.AssemblyProductAttribute("OnClickInvest.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OnClickInvest.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

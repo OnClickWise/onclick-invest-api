@@ -6,7 +6,6 @@ C:\Users\User\Desktop\empresa\Onclick-Invest\onclick-invest-api\OnClickInvest.Ap
 C:\Users\User\Desktop\empresa\Onclick-Invest\onclick-invest-api\OnClickInvest.Api\obj\Debug\net9.0\OnClickInvest.Api.csproj.CoreCompileInputs.cache
 C:\Users\User\Desktop\empresa\Onclick-Invest\onclick-invest-api\OnClickInvest.Api\obj\Debug\net9.0\OnClickInvest.Api.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\User\Desktop\empresa\Onclick-Invest\onclick-invest-api\OnClickInvest.Api\obj\Debug\net9.0\OnClickInvest.Api.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\User\Desktop\empresa\Onclick-Invest\onclick-invest-api\OnClickInvest.Api\obj\Debug\net9.0\OnClickInvest.Api.sourcelink.json
 C:\Users\User\Desktop\empresa\Onclick-Invest\onclick-invest-api\OnClickInvest.Api\bin\Debug\net9.0\appsettings.Development.json
 C:\Users\User\Desktop\empresa\Onclick-Invest\onclick-invest-api\OnClickInvest.Api\bin\Debug\net9.0\appsettings.json
 C:\Users\User\Desktop\empresa\Onclick-Invest\onclick-invest-api\OnClickInvest.Api\bin\Debug\net9.0\OnClickInvest.Api.staticwebassets.endpoints.json

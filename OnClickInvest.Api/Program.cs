@@ -2,14 +2,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OnClickInvest.Api.Data;
+using OnClickInvest.Api.Modules.Plans.Repositories;
+using OnClickInvest.Api.Modules.Plans.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // =====================================================
-// Configuration - Apenas appsettings.json
+// Configuration
 // =====================================================
-// Removido o .AddEnvironmentVariables() se não estiver usando Docker/Cloud agora
 builder.Configuration
        .SetBasePath(Directory.GetCurrentDirectory())
        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -23,16 +24,15 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // =====================================================
-// Database - PostgreSQL (Otimizado para Dev)
+// Database - PostgreSQL
 // =====================================================
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string not configured");
-    
+
     options.UseNpgsql(connectionString, npgsqlOptions =>
     {
-        // Reduzimos o retry para não "travar" o terminal se o banco estiver off
         npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 2);
     });
 });
@@ -55,15 +55,18 @@ builder.Services
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSecret)
+            )
         };
     });
 
 builder.Services.AddAuthorization();
 
 // =====================================================
-// Dependency Injection (Organizada)
+// Dependency Injection
 // =====================================================
+
 // Auth
 builder.Services.AddScoped<OnClickInvest.Api.Modules.Auth.Services.AuthService>();
 builder.Services.AddScoped<OnClickInvest.Api.Modules.Auth.Services.TokenService>();
@@ -72,6 +75,7 @@ builder.Services.AddScoped<OnClickInvest.Api.Modules.Auth.Services.TokenService>
 builder.Services.AddScoped<
     OnClickInvest.Api.Modules.Tenancy.Repositories.ITenantRepository,
     OnClickInvest.Api.Modules.Tenancy.Repositories.TenantRepository>();
+
 builder.Services.AddScoped<
     OnClickInvest.Api.Modules.Tenancy.Services.ITenantService,
     OnClickInvest.Api.Modules.Tenancy.Services.TenantService>();
@@ -80,14 +84,21 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     OnClickInvest.Api.Modules.Users.Repositories.IUserRepository,
     OnClickInvest.Api.Modules.Users.Repositories.UserRepository>();
+
 builder.Services.AddScoped<
     OnClickInvest.Api.Modules.Users.Services.IUserService,
     OnClickInvest.Api.Modules.Users.Services.UserService>();
 
+// =========================
+// Plans (Fase 2 - Core)
+// =========================
+builder.Services.AddScoped<IPlanService, PlanService>();
+builder.Services.AddScoped<IPlanRepository, PlanRepository>();
+
 var app = builder.Build();
 
 // =====================================================
-// Pipeline de Execução
+// Pipeline
 // =====================================================
 if (app.Environment.IsDevelopment())
 {
@@ -95,12 +106,28 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Em desenvolvimento local, se não tiver certificado HTTPS, pode comentar a linha abaixo
-// app.UseHttpsRedirection(); 
+// app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// =====================================================
+// Apply Migrations
+// =====================================================
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate();
+        Console.WriteLine("[DB] ✅ Migrations aplicadas.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[DB] ⚠ Erro ao aplicar migrations: {ex.Message}");
+    }
+}
 
 app.Run();

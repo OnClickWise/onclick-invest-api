@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OnClickInvest.Api.Modules.Users.Models;
 using OnClickInvest.Api.Modules.Tenancy.Models;
 using OnClickInvest.Api.Modules.Auth.Models;
+using OnClickInvest.Api.Modules.Plans.Models;
 
 namespace OnClickInvest.Api.Data
 {
@@ -13,6 +14,7 @@ namespace OnClickInvest.Api.Data
         public DbSet<Tenant> Tenants => Set<Tenant>();
         public DbSet<User> Users => Set<User>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+        public DbSet<Plan> Plans => Set<Plan>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -69,7 +71,6 @@ namespace OnClickInvest.Api.Data
                 entity.Property(u => u.CreatedAt)
                     .IsRequired();
 
-                // TenantId opcional
                 entity.Property(u => u.TenantId)
                     .IsRequired(false);
 
@@ -98,6 +99,39 @@ namespace OnClickInvest.Api.Data
                     .WithMany(u => u.RefreshTokens)
                     .HasForeignKey(r => r.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // =========================
+            // Plan (NOVO)
+            // =========================
+            modelBuilder.Entity<Plan>(entity =>
+            {
+                entity.ToTable("plans");
+
+                entity.HasKey(p => p.Id);
+
+                entity.Property(p => p.Name)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(p => p.Description)
+                    .HasMaxLength(500);
+
+                entity.Property(p => p.Price)
+                    .HasPrecision(10, 2)
+                    .IsRequired();
+
+                entity.Property(p => p.MaxUsers)
+                    .IsRequired();
+
+                entity.Property(p => p.IsActive)
+                    .HasDefaultValue(true);
+
+                entity.Property(p => p.CreatedAt)
+                    .IsRequired();
+
+                entity.Property(p => p.UpdatedAt)
+                    .IsRequired(false);
             });
         }
     }

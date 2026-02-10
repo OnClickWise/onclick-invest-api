@@ -4,6 +4,12 @@ using Microsoft.IdentityModel.Tokens;
 using OnClickInvest.Api.Data;
 using OnClickInvest.Api.Modules.Plans.Repositories;
 using OnClickInvest.Api.Modules.Plans.Services;
+using OnClickInvest.Api.Modules.Subscriptions.Repositories;
+using OnClickInvest.Api.Modules.Subscriptions.Services;
+using OnClickInvest.Api.Modules.Investors.Repositories;
+using OnClickInvest.Api.Modules.Investors.Services;
+using OnClickInvest.Api.Modules.Portfolios.Repositories;
+using OnClickInvest.Api.Modules.Portfolios.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,17 +30,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // =====================================================
-// Database - PostgreSQL
+// Database
 // =====================================================
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string not configured");
 
-    options.UseNpgsql(connectionString, npgsqlOptions =>
-    {
-        npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 2);
-    });
+    options.UseNpgsql(connectionString);
 });
 
 // =====================================================
@@ -43,8 +46,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT Secret not configured");
 
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -67,33 +69,21 @@ builder.Services.AddAuthorization();
 // Dependency Injection
 // =====================================================
 
-// Auth
-builder.Services.AddScoped<OnClickInvest.Api.Modules.Auth.Services.AuthService>();
-builder.Services.AddScoped<OnClickInvest.Api.Modules.Auth.Services.TokenService>();
-
-// Tenancy
-builder.Services.AddScoped<
-    OnClickInvest.Api.Modules.Tenancy.Repositories.ITenantRepository,
-    OnClickInvest.Api.Modules.Tenancy.Repositories.TenantRepository>();
-
-builder.Services.AddScoped<
-    OnClickInvest.Api.Modules.Tenancy.Services.ITenantService,
-    OnClickInvest.Api.Modules.Tenancy.Services.TenantService>();
-
-// Users
-builder.Services.AddScoped<
-    OnClickInvest.Api.Modules.Users.Repositories.IUserRepository,
-    OnClickInvest.Api.Modules.Users.Repositories.UserRepository>();
-
-builder.Services.AddScoped<
-    OnClickInvest.Api.Modules.Users.Services.IUserService,
-    OnClickInvest.Api.Modules.Users.Services.UserService>();
-
-// =========================
-// Plans (Fase 2 - Core)
-// =========================
+// Plans
 builder.Services.AddScoped<IPlanService, PlanService>();
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();
+
+// Subscriptions
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+
+// Investors
+builder.Services.AddScoped<IInvestorService, InvestorService>();
+builder.Services.AddScoped<IInvestorRepository, InvestorRepository>();
+
+// 🔥 Portfolios & Investments (NOVO)
+builder.Services.AddScoped<IPortfolioService, PortfolioService>();
+builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
 
 var app = builder.Build();
 
@@ -105,8 +95,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-// app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -3,6 +3,9 @@ using OnClickInvest.Api.Modules.Users.Models;
 using OnClickInvest.Api.Modules.Tenancy.Models;
 using OnClickInvest.Api.Modules.Auth.Models;
 using OnClickInvest.Api.Modules.Plans.Models;
+using OnClickInvest.Api.Modules.Subscriptions.Models;
+using OnClickInvest.Api.Modules.Portfolios.Models;
+using OnClickInvest.Api.Modules.Investors.Models;
 
 namespace OnClickInvest.Api.Data
 {
@@ -15,6 +18,13 @@ namespace OnClickInvest.Api.Data
         public DbSet<User> Users => Set<User>();
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
         public DbSet<Plan> Plans => Set<Plan>();
+        public DbSet<Subscription> Subscriptions => Set<Subscription>();
+        public DbSet<Portfolio> Portfolios => Set<Portfolio>();
+        public DbSet<Investor> Investors => Set<Investor>();
+        public DbSet<Investment> Investments => Set<Investment>();
+
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -102,7 +112,7 @@ namespace OnClickInvest.Api.Data
             });
 
             // =========================
-            // Plan (NOVO)
+            // Plan
             // =========================
             modelBuilder.Entity<Plan>(entity =>
             {
@@ -133,6 +143,84 @@ namespace OnClickInvest.Api.Data
                 entity.Property(p => p.UpdatedAt)
                     .IsRequired(false);
             });
+
+            // =========================
+            // Subscription
+            // =========================
+            modelBuilder.Entity<Subscription>(entity =>
+            {
+                entity.ToTable("subscriptions");
+
+                entity.HasKey(s => s.Id);
+
+                entity.Property(s => s.StartAt)
+                    .IsRequired();
+
+                entity.Property(s => s.CreatedAt)
+                    .IsRequired();
+
+                entity.Property(s => s.IsActive)
+                    .HasDefaultValue(true);
+
+                entity.HasOne(s => s.Tenant)
+                    .WithMany()
+                    .HasForeignKey(s => s.TenantId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(s => s.Plan)
+                    .WithMany()
+                    .HasForeignKey(s => s.PlanId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // =========================
+            // Investor (CLIENTE FINAL)
+            // =========================
+            modelBuilder.Entity<Investor>(entity =>
+            {
+                entity.ToTable("investors");
+                entity.HasKey(i => i.Id);
+
+                entity.Property(i => i.Name).IsRequired().HasMaxLength(150);
+                entity.Property(i => i.Email).IsRequired().HasMaxLength(150);
+                entity.HasIndex(i => new { i.TenantId, i.Email }).IsUnique();
+
+                entity.Property(i => i.Document).HasMaxLength(30);
+                entity.Property(i => i.IsActive).HasDefaultValue(true);
+                entity.Property(i => i.CreatedAt).IsRequired();
+                entity.Property(i => i.UpdatedAt).IsRequired();
+            });
+
+             modelBuilder.Entity<Portfolio>(entity =>
+            {
+                entity.ToTable("portfolios");
+                entity.HasKey(p => p.Id);
+
+                entity.Property(p => p.Name).IsRequired().HasMaxLength(150);
+                entity.Property(p => p.IsActive).HasDefaultValue(true);
+                entity.Property(p => p.CreatedAt).IsRequired();
+                entity.Property(p => p.UpdatedAt).IsRequired();
+
+                entity.HasMany(p => p.Investments)
+                    .WithOne(i => i.Portfolio)
+                    .HasForeignKey(i => i.PortfolioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Investment>(entity =>
+            {
+                entity.ToTable("investments");
+                entity.HasKey(i => i.Id);
+
+                entity.Property(i => i.AssetName).IsRequired().HasMaxLength(150);
+                entity.Property(i => i.AssetType).IsRequired().HasMaxLength(50);
+                entity.Property(i => i.Quantity).HasPrecision(18, 4);
+                entity.Property(i => i.AveragePrice).HasPrecision(18, 2);
+                entity.Property(i => i.TotalInvested).HasPrecision(18, 2);
+                entity.Property(i => i.CreatedAt).IsRequired();
+            });
+
+
         }
     }
 }

@@ -10,6 +10,8 @@ using OnClickInvest.Api.Modules.Investors.Repositories;
 using OnClickInvest.Api.Modules.Investors.Services;
 using OnClickInvest.Api.Modules.Portfolios.Repositories;
 using OnClickInvest.Api.Modules.Portfolios.Services;
+using OnClickInvest.Api.Modules.Reports.Repositories;
+using OnClickInvest.Api.Modules.Reports.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -81,9 +83,13 @@ builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<IInvestorService, InvestorService>();
 builder.Services.AddScoped<IInvestorRepository, InvestorRepository>();
 
-// 🔥 Portfolios & Investments (NOVO)
+// Portfolios
 builder.Services.AddScoped<IPortfolioService, PortfolioService>();
 builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
+
+// 🔥 REPORTS & PROJECTIONS
+builder.Services.AddScoped<IProjectionService, ProjectionService>();
+builder.Services.AddScoped<IProjectionRepository, ProjectionRepository>();
 
 var app = builder.Build();
 

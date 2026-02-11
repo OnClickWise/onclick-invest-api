@@ -6,6 +6,7 @@ using OnClickInvest.Api.Modules.Plans.Models;
 using OnClickInvest.Api.Modules.Subscriptions.Models;
 using OnClickInvest.Api.Modules.Portfolios.Models;
 using OnClickInvest.Api.Modules.Investors.Models;
+using OnClickInvest.Api.Modules.Reports.Models;
 
 namespace OnClickInvest.Api.Data
 {
@@ -22,6 +23,11 @@ namespace OnClickInvest.Api.Data
         public DbSet<Portfolio> Portfolios => Set<Portfolio>();
         public DbSet<Investor> Investors => Set<Investor>();
         public DbSet<Investment> Investments => Set<Investment>();
+
+        // 🔥 REPORTS
+        public DbSet<Projection> Projections => Set<Projection>();
+        public DbSet<ProjectionScenario> ProjectionScenarios => Set<ProjectionScenario>();
+        public DbSet<ProjectionSnapshot> ProjectionSnapshots => Set<ProjectionSnapshot>();
 
 
 
@@ -191,21 +197,21 @@ namespace OnClickInvest.Api.Data
                 entity.Property(i => i.UpdatedAt).IsRequired();
             });
 
-             modelBuilder.Entity<Portfolio>(entity =>
-            {
-                entity.ToTable("portfolios");
-                entity.HasKey(p => p.Id);
+            modelBuilder.Entity<Portfolio>(entity =>
+           {
+               entity.ToTable("portfolios");
+               entity.HasKey(p => p.Id);
 
-                entity.Property(p => p.Name).IsRequired().HasMaxLength(150);
-                entity.Property(p => p.IsActive).HasDefaultValue(true);
-                entity.Property(p => p.CreatedAt).IsRequired();
-                entity.Property(p => p.UpdatedAt).IsRequired();
+               entity.Property(p => p.Name).IsRequired().HasMaxLength(150);
+               entity.Property(p => p.IsActive).HasDefaultValue(true);
+               entity.Property(p => p.CreatedAt).IsRequired();
+               entity.Property(p => p.UpdatedAt).IsRequired();
 
-                entity.HasMany(p => p.Investments)
-                    .WithOne(i => i.Portfolio)
-                    .HasForeignKey(i => i.PortfolioId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+               entity.HasMany(p => p.Investments)
+                   .WithOne(i => i.Portfolio)
+                   .HasForeignKey(i => i.PortfolioId)
+                   .OnDelete(DeleteBehavior.Cascade);
+           });
 
             modelBuilder.Entity<Investment>(entity =>
             {
@@ -218,6 +224,79 @@ namespace OnClickInvest.Api.Data
                 entity.Property(i => i.AveragePrice).HasPrecision(18, 2);
                 entity.Property(i => i.TotalInvested).HasPrecision(18, 2);
                 entity.Property(i => i.CreatedAt).IsRequired();
+            });
+
+            // =====================================================
+            // REPORTS - PROJECTIONS
+            // =====================================================
+
+            modelBuilder.Entity<Projection>(entity =>
+            {
+                entity.ToTable("projections");
+
+                entity.HasKey(p => p.Id);
+
+                entity.Property(p => p.InitialCapital)
+                      .HasPrecision(18, 2);
+
+                entity.Property(p => p.MonthlyContribution)
+                      .HasPrecision(18, 2);
+
+                entity.Property(p => p.Years)
+                      .IsRequired();
+
+                entity.Property(p => p.CreatedAt)
+                      .IsRequired();
+
+                entity.HasOne(p => p.Investor)
+                      .WithMany()
+                      .HasForeignKey(p => p.InvestorId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(p => p.Tenant)
+                      .WithMany()
+                      .HasForeignKey(p => p.TenantId)
+                      .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<ProjectionScenario>(entity =>
+            {
+                entity.ToTable("projection_scenarios");
+
+                entity.HasKey(s => s.Id);
+
+                entity.Property(s => s.Name)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(s => s.AnnualRate)
+                      .HasPrecision(5, 2);
+
+                entity.HasOne(s => s.Projection)
+                      .WithMany(p => p.Scenarios)
+                      .HasForeignKey(s => s.ProjectionId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ProjectionSnapshot>(entity =>
+            {
+                entity.ToTable("projection_snapshots");
+
+                entity.HasKey(s => s.Id);
+
+                entity.Property(s => s.TotalInvested)
+                      .HasPrecision(18, 2);
+
+                entity.Property(s => s.TotalAmount)
+                      .HasPrecision(18, 2);
+
+                entity.Property(s => s.Date)
+                      .IsRequired();
+
+                entity.HasOne(s => s.Scenario)
+                      .WithMany(sc => sc.Snapshots)
+                      .HasForeignKey(s => s.ScenarioId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
 

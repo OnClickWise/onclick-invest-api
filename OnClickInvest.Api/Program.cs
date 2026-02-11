@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using OnClickInvest.Api.Data;
 using OnClickInvest.Api.Modules.Plans.Repositories;
 using OnClickInvest.Api.Modules.Plans.Services;
@@ -14,63 +12,51 @@ using OnClickInvest.Api.Modules.Reports.Repositories;
 using OnClickInvest.Api.Modules.Reports.Services;
 using OnClickInvest.Api.Modules.Notifications.Repositories;
 using OnClickInvest.Api.Modules.Notifications.Services;
-using System.Text;
+using OnClickInvest.Api.Shared.Extensions;
+using OnClickInvest.Api.Shared.Middlewares;
+using OnClickInvest.Api.Shared.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//
 // =====================================================
-// Configuration
+// CONFIGURATION (já carregada automaticamente pelo .NET)
 // =====================================================
-builder.Configuration
-       .SetBasePath(Directory.GetCurrentDirectory())
-       .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-       .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true);
+// NÃO precisamos reconstruir configuration manualmente.
+// O CreateBuilder já carrega appsettings.json automaticamente.
+//
 
+//
 // =====================================================
-// Controllers & Swagger
+// CONTROLLERS & SWAGGER
 // =====================================================
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//
 // =====================================================
-// Database
+// DATABASE
 // =====================================================
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("DefaultConnection not configured.");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string not configured");
-
     options.UseNpgsql(connectionString);
 });
 
+//
 // =====================================================
-// JWT Authentication
+// SHARED INFRASTRUCTURE (JWT)
 // =====================================================
-var jwtSecret = builder.Configuration["Jwt:Secret"]
-    ?? throw new InvalidOperationException("JWT Secret not configured");
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSecret)
-            )
-        };
-    });
-
+builder.Services.AddSharedInfrastructure(builder.Configuration);
 builder.Services.AddAuthorization();
 
+//
 // =====================================================
-// Dependency Injection
+// DOMAIN DEPENDENCIES
 // =====================================================
 
 // Plans
@@ -89,18 +75,22 @@ builder.Services.AddScoped<IInvestorRepository, InvestorRepository>();
 builder.Services.AddScoped<IPortfolioService, PortfolioService>();
 builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
 
-// 🔥 REPORTS & PROJECTIONS
+// Reports
 builder.Services.AddScoped<IProjectionService, ProjectionService>();
 builder.Services.AddScoped<IProjectionRepository, ProjectionRepository>();
 
+// Notifications
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
+// Utils
+builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
 var app = builder.Build();
 
+//
 // =====================================================
-// Pipeline
+// PIPELINE
 // =====================================================
 if (app.Environment.IsDevelopment())
 {
@@ -108,13 +98,22 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// 🔥 Ordem correta para SaaS multi-tenant
+app.UseMiddleware<ExceptionMiddleware>();
+
 app.UseAuthentication();
+
+app.UseMiddleware<TenantMiddleware>();
+
 app.UseAuthorization();
+
+app.UseMiddleware<AuditMiddleware>();
 
 app.MapControllers();
 
+//
 // =====================================================
-// Apply Migrations
+// APPLY MIGRATIONS (AUTO DATABASE SYNC)
 // =====================================================
 using (var scope = app.Services.CreateScope())
 {
@@ -122,11 +121,11 @@ using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Database.Migrate();
-        Console.WriteLine("[DB] ✅ Migrations aplicadas.");
+        Console.WriteLine("[DB] ✅ Migrations applied successfully.");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[DB] ⚠ Erro ao aplicar migrations: {ex.Message}");
+        Console.WriteLine($"[DB] ⚠ Migration error: {ex.Message}");
     }
 }
 

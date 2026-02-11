@@ -10,6 +10,7 @@ namespace OnClickInvest.Api.Modules.Audit.Models
         public Guid Id { get; set; } = Guid.NewGuid();
 
         public Guid? TenantId { get; set; }
+        public Guid? UserId { get; set; }
 
         public string EntityName { get; set; } = null!;
         public string EntityId { get; set; } = null!;

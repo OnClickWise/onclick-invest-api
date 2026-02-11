@@ -11,6 +11,7 @@ using OnClickInvest.Api.Modules.Portfolios.Models;
 using OnClickInvest.Api.Modules.Investors.Models;
 using OnClickInvest.Api.Modules.Reports.Models;
 using OnClickInvest.Api.Modules.Audit.Models;
+using OnClickInvest.Api.Modules.Notifications.Models;
 
 namespace OnClickInvest.Api.Data
 {
@@ -36,6 +37,9 @@ namespace OnClickInvest.Api.Data
         // AUDIT
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
+        // NOTIFICATIONS
+        public DbSet<Notification> Notifications => Set<Notification>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -46,23 +50,14 @@ namespace OnClickInvest.Api.Data
             modelBuilder.Entity<AuditLog>(entity =>
             {
                 entity.ToTable("audit_logs");
-
                 entity.HasKey(a => a.Id);
-
-                entity.Property(a => a.EntityName)
-                      .IsRequired()
-                      .HasMaxLength(150);
-
-                entity.Property(a => a.Action)
-                      .IsRequired()
-                      .HasMaxLength(20);
-
-                entity.Property(a => a.CreatedAt)
-                      .IsRequired();
+                entity.Property(a => a.EntityName).IsRequired().HasMaxLength(150);
+                entity.Property(a => a.Action).IsRequired().HasMaxLength(20);
+                entity.Property(a => a.CreatedAt).IsRequired();
             });
 
             // =========================
-            // Tenant
+            // TENANT
             // =========================
             modelBuilder.Entity<Tenant>(entity =>
             {
@@ -75,7 +70,7 @@ namespace OnClickInvest.Api.Data
             });
 
             // =========================
-            // User
+            // USER
             // =========================
             modelBuilder.Entity<User>(entity =>
             {
@@ -90,13 +85,13 @@ namespace OnClickInvest.Api.Data
                 entity.Property(u => u.TenantId).IsRequired(false);
 
                 entity.HasOne(u => u.Tenant)
-                    .WithMany(t => t.Users)
-                    .HasForeignKey(u => u.TenantId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                      .WithMany(t => t.Users)
+                      .HasForeignKey(u => u.TenantId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             // =========================
-            // RefreshToken
+            // REFRESH TOKEN
             // =========================
             modelBuilder.Entity<RefreshToken>(entity =>
             {
@@ -106,13 +101,13 @@ namespace OnClickInvest.Api.Data
                 entity.Property(r => r.ExpiresAt).IsRequired();
 
                 entity.HasOne(r => r.User)
-                    .WithMany(u => u.RefreshTokens)
-                    .HasForeignKey(r => r.UserId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                      .WithMany(u => u.RefreshTokens)
+                      .HasForeignKey(r => r.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // =========================
-            // Plan
+            // PLAN
             // =========================
             modelBuilder.Entity<Plan>(entity =>
             {
@@ -124,11 +119,11 @@ namespace OnClickInvest.Api.Data
                 entity.Property(p => p.MaxUsers).IsRequired();
                 entity.Property(p => p.IsActive).HasDefaultValue(true);
                 entity.Property(p => p.CreatedAt).IsRequired();
-                entity.Property(p => p.UpdatedAt).IsRequired(false);
+                entity.Property(p => p.UpdatedAt);
             });
 
             // =========================
-            // Subscription
+            // SUBSCRIPTION
             // =========================
             modelBuilder.Entity<Subscription>(entity =>
             {
@@ -139,18 +134,18 @@ namespace OnClickInvest.Api.Data
                 entity.Property(s => s.IsActive).HasDefaultValue(true);
 
                 entity.HasOne(s => s.Tenant)
-                    .WithMany()
-                    .HasForeignKey(s => s.TenantId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                      .WithMany()
+                      .HasForeignKey(s => s.TenantId)
+                      .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(s => s.Plan)
-                    .WithMany()
-                    .HasForeignKey(s => s.PlanId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                      .WithMany()
+                      .HasForeignKey(s => s.PlanId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             // =========================
-            // Investor
+            // INVESTOR
             // =========================
             modelBuilder.Entity<Investor>(entity =>
             {
@@ -166,7 +161,7 @@ namespace OnClickInvest.Api.Data
             });
 
             // =========================
-            // Portfolio
+            // PORTFOLIO
             // =========================
             modelBuilder.Entity<Portfolio>(entity =>
             {
@@ -178,13 +173,13 @@ namespace OnClickInvest.Api.Data
                 entity.Property(p => p.UpdatedAt).IsRequired();
 
                 entity.HasMany(p => p.Investments)
-                    .WithOne(i => i.Portfolio)
-                    .HasForeignKey(i => i.PortfolioId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                      .WithOne(i => i.Portfolio)
+                      .HasForeignKey(i => i.PortfolioId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // =========================
-            // Investment
+            // INVESTMENT
             // =========================
             modelBuilder.Entity<Investment>(entity =>
             {
@@ -211,14 +206,14 @@ namespace OnClickInvest.Api.Data
                 entity.Property(p => p.CreatedAt).IsRequired();
 
                 entity.HasOne(p => p.Investor)
-                    .WithMany()
-                    .HasForeignKey(p => p.InvestorId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                      .WithMany()
+                      .HasForeignKey(p => p.InvestorId)
+                      .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(p => p.Tenant)
-                    .WithMany()
-                    .HasForeignKey(p => p.TenantId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                      .WithMany()
+                      .HasForeignKey(p => p.TenantId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<ProjectionScenario>(entity =>
@@ -229,9 +224,9 @@ namespace OnClickInvest.Api.Data
                 entity.Property(s => s.AnnualRate).HasPrecision(5, 2);
 
                 entity.HasOne(s => s.Projection)
-                    .WithMany(p => p.Scenarios)
-                    .HasForeignKey(s => s.ProjectionId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                      .WithMany(p => p.Scenarios)
+                      .HasForeignKey(s => s.ProjectionId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<ProjectionSnapshot>(entity =>
@@ -243,9 +238,48 @@ namespace OnClickInvest.Api.Data
                 entity.Property(s => s.Date).IsRequired();
 
                 entity.HasOne(s => s.Scenario)
-                    .WithMany(sc => sc.Snapshots)
-                    .HasForeignKey(s => s.ScenarioId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                      .WithMany(sc => sc.Snapshots)
+                      .HasForeignKey(s => s.ScenarioId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // =========================
+            // NOTIFICATIONS
+            // =========================
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.ToTable("notifications");
+
+                entity.HasKey(n => n.Id);
+
+                entity.Property(n => n.Title)
+                      .IsRequired()
+                      .HasMaxLength(200);
+
+                entity.Property(n => n.Message)
+                      .IsRequired()
+                      .HasMaxLength(1000);
+
+                entity.Property(n => n.IsRead)
+                      .HasDefaultValue(false);
+
+                entity.Property(n => n.CreatedAt)
+                      .IsRequired();
+
+                entity.HasOne(n => n.Tenant)
+                      .WithMany()
+                      .HasForeignKey(n => n.TenantId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(n => n.User)
+                      .WithMany()
+                      .HasForeignKey(n => n.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(n => n.Investor)
+                      .WithMany()
+                      .HasForeignKey(n => n.InvestorId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
 

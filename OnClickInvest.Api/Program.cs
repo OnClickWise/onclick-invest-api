@@ -12,6 +12,8 @@ using OnClickInvest.Api.Modules.Portfolios.Repositories;
 using OnClickInvest.Api.Modules.Portfolios.Services;
 using OnClickInvest.Api.Modules.Reports.Repositories;
 using OnClickInvest.Api.Modules.Reports.Services;
+using OnClickInvest.Api.Modules.Notifications.Repositories;
+using OnClickInvest.Api.Modules.Notifications.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -90,6 +92,10 @@ builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
 // 🔥 REPORTS & PROJECTIONS
 builder.Services.AddScoped<IProjectionService, ProjectionService>();
 builder.Services.AddScoped<IProjectionRepository, ProjectionRepository>();
+
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+
 
 var app = builder.Build();
 

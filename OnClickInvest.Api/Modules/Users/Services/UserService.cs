@@ -126,5 +126,45 @@ namespace OnClickInvest.Api.Modules.Users.Services
 
             await _repository.SaveChangesAsync();
         }
+
+        public async Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
+        {
+            var user = await _repository.GetByIdAsync(userId);
+
+            if (user == null)
+                throw new KeyNotFoundException("Usuário não encontrado");
+
+            // Verifica se a senha atual está correta
+            var verifyResult = _passwordHasher.VerifyHashedPassword(
+                user, 
+                user.PasswordHash, 
+                dto.CurrentPassword
+            );
+
+            if (verifyResult == PasswordVerificationResult.Failed)
+                throw new UnauthorizedAccessException("Senha atual incorreta");
+
+            // Atualiza para a nova senha
+            user.PasswordHash = _passwordHasher.HashPassword(user, dto.NewPassword);
+
+            await _repository.SaveChangesAsync();
+        }
+
+        public async Task UpdateProfileAsync(Guid userId, UpdateProfileDto dto)
+        {
+            var user = await _repository.GetByIdAsync(userId);
+
+            if (user == null)
+                throw new KeyNotFoundException("Usuário não encontrado");
+
+            // Verifica se o email já está em uso por outro usuário
+            var existingUser = await _repository.GetByEmailAsync(dto.Email);
+            if (existingUser != null && existingUser.Id != userId)
+                throw new InvalidOperationException("Email já está em uso");
+
+            user.Email = dto.Email;
+
+            await _repository.SaveChangesAsync();
+        }
     }
 }

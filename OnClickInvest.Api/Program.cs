@@ -33,6 +33,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 //
 // =====================================================
@@ -83,6 +93,10 @@ builder.Services.AddScoped<IProjectionRepository, ProjectionRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
+// Auth
+builder.Services.AddScoped<OnClickInvest.Api.Modules.Auth.Services.AuthService>();
+builder.Services.AddScoped<OnClickInvest.Api.Modules.Auth.Services.TokenService>();
+
 // Utils
 builder.Services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
@@ -101,13 +115,16 @@ if (app.Environment.IsDevelopment())
 // 🔥 Ordem correta para SaaS multi-tenant
 app.UseMiddleware<ExceptionMiddleware>();
 
+app.UseCors("Frontend");
+
 app.UseAuthentication();
 
 app.UseMiddleware<TenantMiddleware>();
 
 app.UseAuthorization();
 
-app.UseMiddleware<AuditMiddleware>();
+// TEMPORÁRIO: Desabilitar AuditMiddleware enquanto corrigimos a migration
+// app.UseMiddleware<AuditMiddleware>();
 
 app.MapControllers();
 

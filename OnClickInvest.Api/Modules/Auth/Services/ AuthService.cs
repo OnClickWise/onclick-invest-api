@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using BCrypt.Net;
 using OnClickInvest.Api.Data;
 using OnClickInvest.Api.Modules.Auth.DTOs;
 using OnClickInvest.Api.Modules.Users.Enums;
@@ -27,20 +26,23 @@ namespace OnClickInvest.Api.Modules.Auth.Services
             if (emailExists) throw new InvalidOperationException("Email já registrado");
 
             var tenant = new Tenant { Name = dto.OrganizationName };
+            _context.Tenants.Add(tenant);
+            await _context.SaveChangesAsync();
+
             var admin = new User
             {
                 Email = dto.AdminEmail,
                 Role = UserRole.ADMIN,
-                Tenant = tenant, // EF seta TenantId
+                TenantId = tenant.Id,
+                IsActive = true,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
             };
 
-            _context.Tenants.Add(tenant);
             _context.Users.Add(admin);
+            await _context.SaveChangesAsync();
 
             var refreshToken = _tokenService.GenerateRefreshToken(admin.Id);
             _context.RefreshTokens.Add(refreshToken);
-
             await _context.SaveChangesAsync();
 
             return new LoginResponseDto
@@ -67,7 +69,6 @@ namespace OnClickInvest.Api.Modules.Auth.Services
 
             var refreshToken = _tokenService.GenerateRefreshToken(user.Id);
             _context.RefreshTokens.Add(refreshToken);
-
             await _context.SaveChangesAsync();
 
             return new LoginResponseDto

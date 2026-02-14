@@ -67,5 +67,29 @@ namespace OnClickInvest.Api.Modules.Users.Controllers
             await _service.UpdateAsync(GetTenantId(), id, dto);
             return NoContent();
         }
+
+        [HttpPost("change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            await _service.ChangePasswordAsync(Guid.Parse(userId), dto);
+            return Ok(new { message = "Senha alterada com sucesso" });
+        }
+
+        [HttpPut("profile")]
+        [Authorize]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            await _service.UpdateProfileAsync(Guid.Parse(userId), dto);
+            return Ok(new { message = "Perfil atualizado com sucesso" });
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace OnClickInvest.Api.Migrations
                     TenantId = table.Column<Guid>(type: "uuid", nullable: true),
                     EntityName = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     EntityId = table.Column<string>(type: "text", nullable: false),
-                    Action = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    Action = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     OldValues = table.Column<string>(type: "text", nullable: true),
                     NewValues = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)

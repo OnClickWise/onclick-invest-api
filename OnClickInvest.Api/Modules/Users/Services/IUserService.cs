@@ -28,5 +28,9 @@ namespace OnClickInvest.Api.Modules.Users.Services
             Guid userId,
             UpdateUserDto dto
         );
+
+        Task ChangePasswordAsync(Guid userId, ChangePasswordDto dto);
+
+        Task UpdateProfileAsync(Guid userId, UpdateProfileDto dto);
     }
 }

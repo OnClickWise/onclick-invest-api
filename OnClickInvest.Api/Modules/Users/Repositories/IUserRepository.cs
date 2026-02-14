@@ -11,6 +11,8 @@ namespace OnClickInvest.Api.Modules.Users.Repositories
     {
         Task<List<User>> GetByTenantAsync(Guid tenantId);
 
+        Task<List<User>> GetAdminsAsync();
+
         Task<User?> GetByIdAsync(Guid userId, Guid tenantId);
 
         Task AddAsync(User user);

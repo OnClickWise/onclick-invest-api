@@ -9,7 +9,7 @@ namespace OnClickInvest.Api.Modules.Portfolios.Controllers
 {
     [ApiController]
     [Route("api/portfolios")]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize]
     public class PortfoliosController : ControllerBase
     {
         private readonly IPortfolioService _service;
@@ -32,10 +32,19 @@ namespace OnClickInvest.Api.Modules.Portfolios.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Create([FromBody] PortfolioDTO dto)
         {
             var result = await _service.CreateAsync(TenantId, dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _service.GetAllAsync(TenantId);
+            return Ok(result);
         }
 
         [HttpGet("investor/{investorId}")]
@@ -55,6 +64,7 @@ namespace OnClickInvest.Api.Modules.Portfolios.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Update(Guid id, [FromBody] PortfolioDTO dto)
         {
             await _service.UpdateAsync(TenantId, id, dto);
@@ -62,6 +72,7 @@ namespace OnClickInvest.Api.Modules.Portfolios.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Disable(Guid id)
         {
             await _service.DisableAsync(TenantId, id);

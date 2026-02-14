@@ -34,6 +34,21 @@ namespace OnClickInvest.Api.Modules.Portfolios.Services
             return dto;
         }
 
+        public async Task<List<PortfolioDTO>> GetAllAsync(Guid tenantId)
+        {
+            var portfolios = await _repository.GetAllAsync(tenantId);
+
+            return portfolios.Select(p => new PortfolioDTO
+            {
+                Id = p.Id,
+                InvestorId = p.InvestorId,
+                Name = p.Name,
+                Description = p.Description,
+                InitialAmount = p.InitialAmount,
+                IsActive = p.IsActive
+            }).ToList();
+        }
+
         public async Task<List<PortfolioDTO>> GetByInvestorAsync(Guid tenantId, Guid investorId)
         {
             var portfolios = await _repository.GetByInvestorAsync(investorId, tenantId);

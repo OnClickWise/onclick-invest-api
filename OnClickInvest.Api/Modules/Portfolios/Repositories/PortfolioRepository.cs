@@ -23,6 +23,13 @@ namespace OnClickInvest.Api.Modules.Portfolios.Repositories
                 .FirstOrDefaultAsync(p => p.Id == id && p.TenantId == tenantId);
         }
 
+        public async Task<List<Portfolio>> GetAllAsync(Guid tenantId)
+        {
+            return await _context.Portfolios
+                .Where(p => p.TenantId == tenantId)
+                .ToListAsync();
+        }
+
         public async Task<List<Portfolio>> GetByInvestorAsync(Guid investorId, Guid tenantId)
         {
             return await _context.Portfolios

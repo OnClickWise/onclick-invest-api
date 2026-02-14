@@ -14,6 +14,10 @@ namespace OnClickInvest.Api.Modules.Users.Services
     {
         Task<List<UserResponseDto>> GetAllAsync(Guid tenantId);
 
+        Task<List<UserResponseDto>> GetAdminsAsync();
+
+        Task<UserResponseDto> CreateAdminAsync(CreateAdminDto dto);
+
         Task<UserResponseDto> CreateInvestorAsync(
             Guid tenantId,
             CreateUserDto dto

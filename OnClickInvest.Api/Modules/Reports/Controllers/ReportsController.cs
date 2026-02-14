@@ -11,7 +11,7 @@ namespace OnClickInvest.Api.Modules.Reports.Controllers
 {
     [ApiController]
     [Route("api/reports")]
-    [Authorize(Roles = "ADMIN")]
+    [Authorize(Roles = "ADMIN,INVESTOR")]
     public class ReportsController : ControllerBase
     {
         private readonly IProjectionService _service;

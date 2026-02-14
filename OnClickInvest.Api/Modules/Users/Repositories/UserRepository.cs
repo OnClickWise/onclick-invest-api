@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OnClickInvest.Api.Data;
 using OnClickInvest.Api.Modules.Users.Models;
+using OnClickInvest.Api.Modules.Users.Enums;
 
 namespace OnClickInvest.Api.Modules.Users.Repositories
 {
@@ -22,6 +23,14 @@ namespace OnClickInvest.Api.Modules.Users.Repositories
         {
             return await _context.Users
                 .Where(u => u.TenantId == tenantId)
+                .ToListAsync();
+        }
+
+        public async Task<List<User>> GetAdminsAsync()
+        {
+            return await _context.Users
+                .Include(u => u.Tenant)
+                .Where(u => u.Role == UserRole.ADMIN)
                 .ToListAsync();
         }
 
